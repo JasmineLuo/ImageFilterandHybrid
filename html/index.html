@@ -1,0 +1,555 @@
+<html>
+<head>
+<title>CS 6476 Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#tail {
+	background: #777;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Zhongyi Luo<span style="color: #DE3737"> ID 903141808 (ECE)</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>CS 6476 / Project 1 / Image Filtering and Hybrid Images</h2>
+
+<div style="float: right; padding: 20px">
+<img src="hybrid cathdogl/catdog3.bmp" alt="hyber cat+dog" width="430" height ="210"/>
+<p style="font-size: 14px">Example of a hybernate picture: It's a cat when observed closely and can be the image of a dog when looked at a distance</p>
+</div>
+
+<p> 	This project mainly focuses on acquiring different setting of filters for space domain filtering and monitor the observation results of human eyes at different distance. As for filtering of single picture and hybrid of two pictures, my work is consisted of following parts: </p>
+
+<ol>
+<li> basic image space filtering with zero padding.</li>
+<li> image space filtering with mirror padding.</li>
+<li> basic hybrid image pairs.</li>
+<li> hybrid image with different cutoff frequency for high and low freq components.</li>
+<li> image filtering in frequency domain to achieve hybrid image.</li>
+</ol>
+
+<p>   For the first two parts, identity filter, box filter, Gaussian filter, Oriented filter, high pass filter are used for both intensity and color pictures. In the third part, hybrid is operated on different pairs(of identical size). And these hybrid show that the desirable results do not neccessary share same cutoff frequency. Hence, in the following part, I set different cutoff frequencies respectively to high frequency component and low frequency component. In the last part, considering the Fourier Transform of a 2D Gaussian function is also a 2D Gaussian function, I applied Gaussian function directly in the frequency domain to achieve hybrid image. </p>
+<p>   The main function files include my_imfilter2.m, my_imfilter_fft.m, seperate_cutoff.m and vis_hybrid_image.m. </p>
+
+<div style="clear:both">
+<h3>Part 1 space filtering + zero padding </h3>
+
+<p>   Space filtering used in this project, in nature, is the convolution of filter matrix and origin picture matrix. As for the color images, I simply do same operation for each channel. In this project, each pixel of filtered image is the element sum of the dot product which gave by filter and the pixel's neighboring matrix. As follows: </p>
+
+<pre><code>
+%start filtering
+out_im=zeros(i_w,i_h)';%resulting image 
+for x_out=1:1:i_w       
+  for y_out=1:1:i_h % x_out and y_out is the coordinate of current pixel.
+      x_cor=x_min+x_out;
+      y_cor=y_min+y_out;
+      scope=im_bond(x_cor-x_incre:x_cor+x_incre,y_cor-y_incre:y_cor+y_incre);
+    		%scope is the segmented part of image matrix(with padding) with the same size of filter
+      value=sum(sum(scope.*filter));
+    		%use dot product instead of two "for" loop
+      out_im(y_out,x_out)=value;  
+      		% final out come of pixel(y_out, x_out)
+  end       %i_h is the hight of origin image(without padding)
+end 		% i_w is the width of origin image(without padding)
+
+</code></pre>
+
+<p>  When it comes to the calculation of pixels near boundary, the size of pixel's neighbor is not in accord with the filter. Hence padding is needed to sustain origin size of the picture. there are different methods of padding, the simplest is zero padding as follow: </p>
+
+<pre><code>
+% find the size of filter and one chanel of the image.
+[f_w]=size(filter,2);
+[f_h]=size(filter,1);
+[i_w]=size(image,2);
+[i_h]=size(image,1);
+...
+%% initial edge for zero pad
+      x_incre = (f_w-1)/2;
+      y_incre = (f_h-1)/2; % the increment of hight and width
+      x_n=zeros(x_incre,i_h)';
+      x_p=zeros(x_incre,i_h)';
+      y_n=zeros(i_w+2*x_incre,y_incre)';
+      y_p=zeros(i_w+2*x_incre,y_incre)'; % the four zero padding segments
+      im_bound1=[x_n,image,x_p];
+      im_bond=[y_p;im_bound1;y_n]; % combine the origin image and surrounding padding.
+
+</code></pre>
+
+<p> Hence, the segment function of MATLAB make both filtering and padding convenient. Results are shown as follow: </p>
+
+<h3>Results of zero padding + space filtering</h3>
+
+<table border=1>
+<tr>
+<td>
+<img src="filtering in intensity image/Marilian10.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian20.bmp"  width="24%"/>
+<img src="filtering in intensity image/Marilian30.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian40.bmp" width="24%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="filtering in intensity image/Marilian50.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian60.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian70.bmp" width="24%"/>
+</td>
+</tr>
+
+</table>
+
+<table border=1>
+<tr>
+<td>
+<img src="filtering in color image/cat10.bmp" width="24%"/>
+<img src="filtering in color image/cat20.bmp"  width="24%"/>
+<img src="filtering in color image/cat30.bmp" width="24%"/>
+<img src="filtering in color image/cat40.bmp" width="24%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="filtering in color image/cat50.bmp" width="24%"/>
+<img src="filtering in color image/cat60.bmp" width="24%"/>
+<img src="filtering in color image/cat70.bmp" width="24%"/>
+</td>
+</tr>
+
+</table>
+
+<div style="clear:both" >
+<p style="font-size: 14px">   For both the intensity and color image series, the images from left to right are: indentity filtered, small box blur filtered, Gaussian blur filtered, oriented filtered, Discrete Laplacian high pass filtered, and (minus) Gaussian high pass filtered.</p>
+
+<p>	To conclude for filtered pictures above: </P>
+<ol>
+<li> Gaussian blurred pictures are more smooth than box blurred; </li>
+<li> when Laplacian high pass filtered pictures have larger contrast, its noise level is also larger than the Gaussian filtered.</li>
+<li> For both series, black margins can be seen, and more obvious when filter has larger size.</li>
+</ol> 
+
+<h3> Part 2 space filtering + mirror padding </h3>
+
+<p>		This part has similar filtering process with Part 1, the only difference is padding method. For the padding boundary, values are given according to the edge reflection of origin picture. Related code is shown below: </p>
+
+<pre><code>
+%% initial edge for mirror boundary
+      x_incre = (f_w-1)/2;  %f_w is the width of filter matrix
+      y_incre = (f_h-1)/2;  %f_h is the height of filter matrix
+      x_n=flip(image(:,1:x_incre),2); 
+      x_p=flip(image(:,i_w-x_incre+1:i_w),2); % increased bounding on width direction
+      im_bound1=[x_n,image,x_p];
+      y_p=flip(im_bound1(1:y_incre,:),1);
+      y_n=flip(im_bound1(i_h-y_incre+1:i_h,:),1); %incresed bounding on height direction
+      im_bond=[y_p;im_bound1;y_n];
+</code></pre>
+
+<p>			The mirror boundary is implemented through flip function in MATLAB. </p>
+
+<h3>Results of mirror padding + space filtering</h3>
+
+<table border=1>
+<tr>
+<td>
+<img src="filtering in intensity image/Marilian1.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian2.bmp"  width="24%"/>
+<img src="filtering in intensity image/Marilian3.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian4.bmp" width="24%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="filtering in intensity image/Marilian5.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian6.bmp" width="24%"/>
+<img src="filtering in intensity image/Marilian7.bmp" width="24%"/>
+</td>
+</tr>
+
+</table>
+
+<table border=1>
+<tr>
+<td>
+<img src="filtering in color image/cat1.bmp" width="24%"/>
+<img src="filtering in color image/cat2.bmp"  width="24%"/>
+<img src="filtering in color image/cat3.bmp" width="24%"/>
+<img src="filtering in color image/cat4.bmp" width="24%"/>
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="filtering in color image/cat5.bmp" width="24%"/>
+<img src="filtering in color image/cat6.bmp" width="24%"/>
+<img src="filtering in color image/cat7.bmp" width="24%"/>
+</td>
+</tr>
+</table>
+
+<p style="font-size: 14px">   For both the intensity and color image series, the images from left to right are: indentity filtered, small box blur filtered, Gaussian blur filtered, oriented filtered, Discrete Laplacian high pass filtered, and (minus) Gaussian high pass filtered.</p>
+
+<p>		It can be seen that similar effects are achieved as Part 1 and most importantly, rid of the black margins, making the image more continuous on the boundary. Hence, for the following parts, I will continue to use Gaussian filtering and mirror padding boundary for hybrid pictures. </p>
+
+<h3>Part 3 Hybrid picture </h3>
+
+<p>		Hybrid picture as given at the beginning of this page can be regarded as a combination of high frequency of one picture(cat) and the low frequency from another(dog). When watching from a close distance, eyes will choose to ignore the blurred low frequency component and focus on high frequency parts; when observing distance increases, the high frequncy component drop beyond the resolving power of eyes, making the low frequency part dominate. The series of under sampled pictures illustrate this phenomenon. </p>
+<p>     For the low frequency component, Gaussian filter is applied; for the high frequency component, I extracted low frequency component from origin. The procedure is shown as follow: </p>
+
+<pre><code>
+filter = fspecial('Gaussian', cutoff_frequency*4+1, cutoff_frequency);
+...
+low_frequencies = my_imfilter2(image1, filter); % filter is Gaussian type
+high_frequencies = image2-my_imfilter2(image2, filter); % my_filter2 is the filter function used in Part1 and 2 
+hybrid_image = high_frequencies+low_frequencies;
+
+</code></pre>
+
+<p> As for the cutoff frequency, different values are used for different pairs, in order to improve the effect of hybrid. </p>
+
+<h3> Results of hybrid picture </h3>
+<p>		Apply to cat.bmp (high freq) and dog.bmp (low freq), cutoff frequency = 7 pixel^(-1); </p>
+<table broder=1>
+<tr>
+<td>
+<img src="hybrid cathdogl/catdog1.bmp" width="24%">
+<img src="hybrid cathdogl/catdog2.bmp" width="24%">
+<img src="hybrid cathdogl/catdog3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		Apply to einstein.bmp (high freq) and Marilyn.bmp (low freq), cutoff frequency = 4.5 pixel^(-1); </p>
+<table broder=1>
+<tr>
+<td>
+<img src="hybrid einhmaryl/1.bmp" width="24%">
+<img src="hybrid einhmaryl/2.bmp" width="24%">
+<img src="hybrid einhmaryl/3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		Apply to bicycle.bmp (high freq) and motorcycle.bmp (low freq), cutoff frequency = 4 pixel^(-1); </p>
+<table broder=1>
+<tr>
+<td>
+<img src="hybrid bihmol/1.bmp" width="24%">
+<img src="hybrid bihmol/2.bmp" width="24%">
+<img src="hybrid bihmol/3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		Apply to plane.bmp (high freq) and bird.bmp (low freq), cutoff frequency = 5 pixel^(-1); </p>
+<table broder=1>
+<tr>
+<td>
+<img src="hybrid plhbrl/1.bmp" width="24%">
+<img src="hybrid plhbrl/2.bmp" width="24%">
+<img src="hybrid plhbrl/3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		Apply to submarrine.bmp (high freq) and fish.bmp (low freq), cutoff frequency = 6.5 pixel^(-1); </p>
+<table broder=1>
+<tr>
+<td>
+<img src="hybrid suhfil/1.bmp" width="24%">
+<img src="hybrid suhfil/2.bmp" width="24%">
+<img src="hybrid suhfil/3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		In the hybrid pictures above, the overlap of high frequency component and low frequency component let low freq picture dominate and then high freq based on distance varying (achived by under sampling). However, in the overlap of motorcycle and bicycle, the color distribution of motocycle largely influence the view of bicycle, no matter which cutoff frequency I use. Hence, I think there sould be other requirements of picture themselves (except for size) to ensure the effect of hybrid. </p>
+
+<h3>Part 4 unidentical cutoff frequency for two components </h3>
+
+<p>      Through the process of trying different cutoff frequencis, I found that sometimes hybrid picture can be bettered when different cutoff frequencies are applied respectively to two components. </p>
+
+<h3>Results</h3>
+
+<p>		Cutoff frequency = 7 pixel^(-1) for motorcycle.bmp, cutoff frequency = 3 pixel^(-1) for bicycle.bmp.
+<table broder=1>
+<tr>
+<td>
+<img src="seperate cutoff freq/bm1.bmp" width="24%">
+<img src="seperate cutoff freq/bm2.bmp" width="24%">
+<img src="seperate cutoff freq/bm3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		Cutoff frequency = 6 pixel^(-1) for motorcycle.bmp, cutoff frequency = 4 pixel^(-1) for bicycle.bmp.
+<table broder=1>
+<tr>
+<td>
+<img src="seperate cutoff freq/em1.bmp" width="24%">
+<img src="seperate cutoff freq/em2.bmp" width="24%">
+<img src="seperate cutoff freq/em3.bmp" width="48%">
+</td>
+</tr>
+</table>
+
+<p>		In this way, the two hybrid series show better transfer from high freq component to low freq component. 
+
+<h3>Part 5 filter in frequency domain</h3>
+
+<p>		Since the Fourier Transform of a 2D Gaussian function is also a 2D Gaussian function. The frequency domain of Gaussian filters used above are shown as follow:</p>
+
+<table broder=1>
+<tr>
+<td>
+<img src="gaussian freq/cf4.5.bmp" width="18%">
+<img src="gaussian freq/cf5.bmp" width="18%">
+<img src="gaussian freq/cf7.bmp" width="18%">
+<img src="gaussian freq/cf9.bmp" width="18%">
+<img src="gaussian freq/cf10.bmp" width="18%">
+</td>
+</tr>
+</table>
+
+<p style="font-size: 14px">   From left to right, cutoff frequency: 4.5 pixel^(-1), 5 pixel^(-1), 7 pixel^(-1), 9 pixel^(-1), 10 pixel^(-1). </p>
+
+<p>		Hence, by the end of this project, I also used Gaussian filter directly in frequency domain and see the effects: </p>
+
+<pre><code>
+low_frequencies = my_imfilter_fft(image1, 10);%% the second paramenter is cutoff freq
+high_frequencies = image2(:,1:361,:)-my_imfilter_fft(image2, 8); %%segment in image2 to cope with later sqaure matrix
+hybrid_image = high_frequencies+low_frequencies;
+...
+%first split the channels
+    R_ori=squeeze(image(:,1:i_h,1));
+    G_ori=squeeze(image(:,1:i_h,2));
+    B_ori=squeeze(image(:,1:i_h,3));
+    
+    %% apply FFT to three channels;   
+    R_FFT=fftshift(fft2(R_ori,i_h,i_h));
+    G_FFT=fftshift(fft2(G_ori,i_h,i_h));
+    B_FFT=fftshift(fft2(B_ori,i_h,i_h));
+    
+    filter_FFT=fspecial('Gaussian',i_h,cutoff_frequency);
+      
+    output(:,:,1)=abs(ifft2(R_FFT.*filter_FFT,i_h,i_h));
+    output(:,:,2)=abs(ifft2(G_FFT.*filter_FFT,i_h,i_h));
+    output(:,:,3)=abs(ifft2(B_FFT.*filter_FFT,i_h,i_h));
+
+</code></pre>
+
+<table broder=1>
+<tr>
+<td>
+<img src="filter in frequency domain/try1_1.bmp" width="60%">
+</td>
+</tr>
+</table>
+
+<p>		This is because I hadn't move lower frequency to center (fftshift) when the peak of Gaussian filter is at center. Then, I get: </p>
+<pre> <code>
+...
+R_FFT=fftshift(fft2(R_ori,i_h,i_h));
+G_FFT=fftshift(fft2(G_ori,i_h,i_h));
+B_FFT=fftshift(fft2(B_ori,i_h,i_h));
+...
+</pre></code>
+
+<table broder=1>
+<tr>
+<td>
+<img src="filter in frequency domain/try4_3.bmp" width="60%">
+</td>
+</tr>
+</table>
+
+<p>		Later find out this is due to the low peak value of generated filter, making the filtered low frequency component almost zero. After normalizing the filter matrix, I get: </p>
+
+<pre><code>
+...
+mask=fspecial('Gaussian',i_h,cutoff_frequency);
+Pe=max(max(mask));
+filter_FFT=mask./Pe;
+...
+output(:,:,1)=abs(ifft2(R_FFT.*filter_FFT,i_h,i_h));
+...
+
+</pre></code>
+
+<table broder=1>
+<tr>
+<td>
+<img src="filter in frequency domain/try2_3.bmp" width="60%">
+</td>
+</tr>
+</table>
+
+<p>		In this set, one channel of the high frequency component is not aligned with the two other channels. I changed several settings of resolution in frequenct domain(i.e. "m" and "n" in fft2(image,m,n), in which m=n to cope with square matrix produced by function fspecail), but still fond the problem exsisted. After looking into steps during debug, I found the process "ifft2(fftshift(fft(X)))" does not always recover origin X and translation can occur due to the nature of FFT. </p>
+<p>		To avoid this, I changed the FFT tranform size according to cope with the square matrix of function fspecial (whose size also equals trimmed origin picture), and get the following outcome:</p>
+
+<pre><code>
+...
+high_frequencies = image2(:,1:361,:)-my_imfilter_fft(image2, 8); %%segment in image2 is to cope with the sqaure matrix from function fspecial
+...
+R_ori=squeeze(image(:,1:i_h,1));
+G_ori=squeeze(image(:,1:i_h,2));
+B_ori=squeeze(image(:,1:i_h,3));
+...
+
+</code></pre>
+
+<table broder=1>
+<tr>
+<td>
+<img src="filter in frequency domain/try3_3.bmp" width="60%">
+</td>
+</tr>
+</table>
+
+<p> 	Hence, the Gaussian filtering at frequency domian can achieve similar effect as Gaussian filtering at space domain. However, the shortcomming of this code is also obvious when it can only deal with square images. I think a better way can be putting aside function fspecial and write our own discrete Gaussian function over meshgrid at given size (not necessary square matrix). </p>
+
+<p>		Above is all the work I have done in the project "Image Filtering and Hybrid Images", please refer to code counterpart and images for details. Thank you for your patience. If there is any problem, please contact zluo60@gatech.edu.</p>
+
+<body>
+<div style="float: left; padding: 0px">
+<div id="tail" >
+<div id="headersub">
+<h5>Thank you for your patience. For any problem, my email is zluo60@gatech.edu.</h5>
+</div>
+</div>
+</div>
+</body>
+
+</div>
+</body>
+</html>
